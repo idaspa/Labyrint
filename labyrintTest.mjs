@@ -1,3 +1,4 @@
+//#region 
 import * as readlinePromises from "node:readline/promises";
 const rl = readlinePromises.createInterface({
     input: process.stdin,
@@ -28,6 +29,10 @@ let levels = [level1, level2, level3];
 let rawLevel = levels.shift();
 
 
+
+
+// Brettet som er lastet inn er i form av tekst, vi må omgjøre teksten til en 
+// to dimensjonal liste [][] for å kunne tolke hva som er hvor etc.
 let tempLevel = rawLevel.split("\n");
 let level = [];
 for (let i = 0; i < tempLevel.length; i++) {
@@ -118,7 +123,7 @@ function update() {
     let tRow = playerPos.row + (1 * drow);
     let tCol = playerPos.col + (1 * dcol);
 
-    if (THINGS.includes(level[tRow][tCol])) { 
+    if (THINGS.includes(level[tRow][tCol])) { // Er det en gjenstand der spilleren prøver å gå?
 
         let currentItem = level[tRow][tCol];
         if (currentItem == LOOT) {
@@ -126,23 +131,26 @@ function update() {
             if (Math.random() < 0.95) {
                 let loot = Math.round(Math.random() * (7 - 3)) + 3
                 playerStats.chash += loot
-                eventText = (`${DICTIONARY.en.gained} ${loot} ${DICTIONARY.en.showLoot}`);
-           
-            } else {
+                eventText = (`${DICTIONARY.en.gained} ${loot} ${DICTIONARY.en.showLoot}`); // Vi bruker eventText til å fortelle spilleren hva som har intruffet.
+            } else { // i 5% av tilfellen tildeler vi en tilfeldig gjenstand fra listen over gjenstander. 
                 let item = POSSIBLE_PICKUPS.random()
                 playerStats.attack += item.value;
-                eventText = (`${DICTIONARY.en.found} ${item.name} ${item.attribute} ${DICTIONARY.en.power} ${item.value}`);
+                eventText = (`${DICTIONARY.en.found} ${item.name} ${item.attribute} ${DICTIONARY.en.power} ${item.value}`);// Vi bruker eventText til å fortelle spilleren hva som har intruffet.
             }
         }
 
-        level[playerPos.row][playerPos.col] = EMPTY;
-        level[tRow][tCol] = HERO;
+        level[playerPos.row][playerPos.col] = EMPTY; // Der helten står nå settes til tom 
+        level[tRow][tCol] = HERO; // Den nye plaseringen på kartet settes til å inneholde helten
 
+        // Oppdaterer heltens posisjon
         playerPos.row = tRow;
         playerPos.col = tCol;
 
+        // Sørger for at vi tegner den nye situasjonen. 
         isDirty = true;
-    } else if (BAD_THINGS.includes(level[tRow][tCol])) {
+    } else if (BAD_THINGS.includes(level[tRow][tCol])) { // Spilleren har forsøkt å gå inn der hvor det står en "motstander" av en eller annen type
+
+        // Vi må finne den riktige "motstanderen" i listen over motstandere. 
         let antagonist = null;
         for (let i = 0; i < NPCs.length; i++) {
             let b = NPCs[i];
@@ -151,23 +159,28 @@ function update() {
             }
         }
 
+        // Vi beregner hvor mye skade spilleren påfører motstanderen
         let attack = ((Math.random() * MAX_ATTACK) * playerStats.attack).toFixed(2);
-        antagonist.hp -= attack;
+        antagonist.hp -= attack; // Påfører skaden. 
 
-        eventText = (`${DICTIONARY.en.dealtDamage} ${attack} ${DICTIONARY.en.pointsDamage}`);
+        eventText = (`${DICTIONARY.en.dealtDamage} ${attack} ${DICTIONARY.en.pointsDamage}`); // Forteller spilleren hvor mye skade som ble påfært
 
-        if (antagonist.hp <= 0) {
-            eventText += DICTIONARY.en.badGuydead
+        if (antagonist.hp <= 0) { // Sjekker om motstanderen er død.
+            eventText += DICTIONARY.en.badGuydead // Sier i fra at motstandren er død
             level[tRow][tCol] = EMPTY;
-
+           // Markerer stedet på kartet hvor motstanderen sto som ledig. 
         } else {
+            // Dersom motstanderen ikke er død, så slår vedkommene tilbake. 
             attack = ((Math.random() * MAX_ATTACK) * antagonist.attack).toFixed(2);
             playerStats.hp -= attack;
             eventText += (`\n${DICTIONARY.en.badGuyDamage} ${attack} ${DICTIONARY.en.inReturn}`);
         }
 
+        // Setter temp pos tilbake siden dette har vært en kamp runde
         tRow = playerPos.row;
         tCol = playerPos.col;
+
+        // Sørger for at vi tegner den nye situasjonen.
         isDirty = true;
     }
     else if (level[tRow][tCol] == DOOR) {
@@ -183,28 +196,29 @@ function update() {
 
 function draw() {
 
+    // Vi tegner kunn dersom spilleren har gjort noe.
     if (isDirty == false) {
         return;
     }
     isDirty = false;
 
-
+    // Tømmer skjermen 
     console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
 
-
+    // Starter tegningen vår av den nåværende skjerm. 
     let rendring = "";
 
-
+    // Bruker en funksjon for å tegne opp HUD elementer. 
     rendring += renderHUD();
 
-
+    // Så går vi gjenom celle for celle og legger inn det som skal vises per celle. (husk rad+kolone = celle, tenk regneark)
     for (let row = 0; row < level.length; row++) {
         let rowRendering = "";
         for (let col = 0; col < level[row].length; col++) {
             let symbol = level[row][col];
             if (pallet[symbol] != undefined) {
                 if (BAD_THINGS.includes(symbol)) {
-
+                    // Kan endre tegning dersom vi vill.
                     rowRendering += pallet[symbol] + symbol + ANSI.COLOR_RESET;
                 }
                 else {
@@ -224,7 +238,7 @@ function draw() {
     }
 
     console.log(rendring);
-    if (eventText != "") {
+    if (eventText != "") { // dersom noe er lagt til i eventText så skriver vi det ut nå. Dette blir synelig til neste gang vi tegner (isDirty = true)
         console.log(eventText);
         eventText = "";
     }
@@ -249,10 +263,14 @@ function eventtextTime() {
 
 }
 
+
 function gameLoop() {
     update();
     draw();
+
+
 }
+
 function newGameLevel() {
     tempLevel = rawLevel.split("\n");
     level = [];
