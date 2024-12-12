@@ -6,7 +6,7 @@ const rl = readlinePromises.createInterface({
 //#endregion
 import ANSI from "./ANSI.mjs";
 import KeyBoardManager from "./keyboardManager.mjs";
-import "./prototypes.mjs";
+//import "./prototypes.mjs";
 import { level1, level2, level3 } from "./levels.mjs";
 import DICTIONARY from "./dictionary.mjs";
 import SPLASH_SCREEN from "./splashScreen.mjs";
@@ -118,7 +118,7 @@ function update() {
     let tRow = playerPos.row + (1 * drow);
     let tCol = playerPos.col + (1 * dcol);
 
-    if (THINGS.includes(level[tRow][tCol])) { 
+    if (THINGS.includes(level[tRow][tCol])) {
 
         let currentItem = level[tRow][tCol];
         if (currentItem == LOOT) {
@@ -127,7 +127,7 @@ function update() {
                 let loot = Math.round(Math.random() * (7 - 3)) + 3
                 playerStats.chash += loot
                 eventText = (`${DICTIONARY.en.gained} ${loot} ${DICTIONARY.en.showLoot}`);
-           
+
             } else {
                 let item = POSSIBLE_PICKUPS.random()
                 playerStats.attack += item.value;
@@ -142,6 +142,7 @@ function update() {
         playerPos.col = tCol;
 
         isDirty = true;
+
     } else if (BAD_THINGS.includes(level[tRow][tCol])) {
         let antagonist = null;
         for (let i = 0; i < NPCs.length; i++) {
@@ -186,15 +187,11 @@ function draw() {
     if (isDirty == false) {
         return;
     }
+
     isDirty = false;
-
-
     console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
 
-
     let rendring = "";
-
-
     rendring += renderHUD();
 
 
@@ -263,3 +260,5 @@ function newGameLevel() {
 
     }
 };
+
+

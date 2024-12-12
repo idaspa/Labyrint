@@ -7,7 +7,7 @@ const rl = readlinePromises.createInterface({
 //#endregion
 import ANSI from "./ANSI.mjs";
 import KeyBoardManager from "./keyboardManager.mjs";
-import "./prototypes.mjs";
+//import "./prototypes.mjs";
 import { level1, level2, level3 } from "./levels.mjs";
 import DICTIONARY from "./dictionary.mjs";
 import SPLASH_SCREEN from "./splashScreen.mjs";
@@ -168,116 +168,117 @@ function update() {
         if (antagonist.hp <= 0) { // Sjekker om motstanderen er død.
             eventText += DICTIONARY.en.badGuydead // Sier i fra at motstandren er død
             level[tRow][tCol] = EMPTY;
-           // Markerer stedet på kartet hvor motstanderen sto som ledig. 
         } else {
-            // Dersom motstanderen ikke er død, så slår vedkommene tilbake. 
             attack = ((Math.random() * MAX_ATTACK) * antagonist.attack).toFixed(2);
             playerStats.hp -= attack;
             eventText += (`\n${DICTIONARY.en.badGuyDamage} ${attack} ${DICTIONARY.en.inReturn}`);
-        }
+            if (HERO.hp <= 0); {
+                eventText += DICTIONARY.en.playerDead;
 
-        // Setter temp pos tilbake siden dette har vært en kamp runde
-        tRow = playerPos.row;
-        tCol = playerPos.col;
+                // Setter temp pos tilbake siden dette har vært en kamp runde
+                tRow = playerPos.row;
+                tCol = playerPos.col;
 
-        // Sørger for at vi tegner den nye situasjonen.
-        isDirty = true;
-    }
-    else if (level[tRow][tCol] == DOOR) {
-        rawLevel = levels.shift();
-        playerPos.row = null;
-        playerPos.col = null;
-        eventText += (`${DICTIONARY.en.walkThrougDoor}`);
+                // Sørger for at vi tegner den nye situasjonen.
+                isDirty = true;
+            } if (level[tRow][tCol] == DOOR) {
+                rawLevel = levels.shift();
+                playerPos.row = null;
+                playerPos.col = null;
+                eventText += (`${DICTIONARY.en.walkThrougDoor}`);
 
-        newGameLevel();
-    }
-    updating = false;
-}
-
-function draw() {
-
-    // Vi tegner kunn dersom spilleren har gjort noe.
-    if (isDirty == false) {
-        return;
-    }
-    isDirty = false;
-
-    // Tømmer skjermen 
-    console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
-
-    // Starter tegningen vår av den nåværende skjerm. 
-    let rendring = "";
-
-    // Bruker en funksjon for å tegne opp HUD elementer. 
-    rendring += renderHUD();
-
-    // Så går vi gjenom celle for celle og legger inn det som skal vises per celle. (husk rad+kolone = celle, tenk regneark)
-    for (let row = 0; row < level.length; row++) {
-        let rowRendering = "";
-        for (let col = 0; col < level[row].length; col++) {
-            let symbol = level[row][col];
-            if (pallet[symbol] != undefined) {
-                if (BAD_THINGS.includes(symbol)) {
-                    // Kan endre tegning dersom vi vill.
-                    rowRendering += pallet[symbol] + symbol + ANSI.COLOR_RESET;
-                }
-                else {
-                    rowRendering += pallet[symbol] + symbol + ANSI.COLOR_RESET;
-                }
-            } else {
-                if (symbol == DOOR) {
-                    rowRendering += EMPTY;
-                } else {
-                    rowRendering += symbol;
-                }
-
+                newGameLevel();
             }
+            updating = false;
         }
-        rowRendering += "\n";
-        rendring += rowRendering;
     }
 
-    console.log(rendring);
-    if (eventText != "") { // dersom noe er lagt til i eventText så skriver vi det ut nå. Dette blir synelig til neste gang vi tegner (isDirty = true)
-        console.log(eventText);
-        eventText = "";
+    function draw() {
+
+        // Vi tegner kunn dersom spilleren har gjort noe.
+        if (isDirty == false) {
+            return;
+        }
+        isDirty = false;
+
+        // Tømmer skjermen 
+        console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
+
+        // Starter tegningen vår av den nåværende skjerm. 
+        let rendring = "";
+
+        // Bruker en funksjon for å tegne opp HUD elementer. 
+        rendring += renderHUD();
+
+        // Så går vi gjenom celle for celle og legger inn det som skal vises per celle. (husk rad+kolone = celle, tenk regneark)
+        for (let row = 0; row < level.length; row++) {
+            let rowRendering = "";
+            for (let col = 0; col < level[row].length; col++) {
+                let symbol = level[row][col];
+                if (pallet[symbol] != undefined) {
+                    if (BAD_THINGS.includes(symbol)) {
+                        // Kan endre tegning dersom vi vill.
+                        rowRendering += pallet[symbol] + symbol + ANSI.COLOR_RESET;
+                    }
+                    else {
+                        rowRendering += pallet[symbol] + symbol + ANSI.COLOR_RESET;
+                    }
+                } else {
+                    if (symbol == DOOR) {
+                        rowRendering += EMPTY;
+                    } else {
+                        rowRendering += symbol;
+                    }
+
+                }
+            }
+            rowRendering += "\n";
+            rendring += rowRendering;
+        }
+
+        console.log(rendring);
+        if (eventText != "") { // dersom noe er lagt til i eventText så skriver vi det ut nå. Dette blir synelig til neste gang vi tegner (isDirty = true)
+            console.log(eventText);
+            eventText = "";
+        }
     }
-}
 
 
-function renderHUD() {
-    let hpBar = `[${ANSI.COLOR.RED + pad(Math.round(playerStats.hp), "o") + ANSI.COLOR_RESET}${ANSI.COLOR.BLUE + pad(HP_MAX - playerStats.hp, "o") + ANSI.COLOR_RESET}]`
-    let cash = `$:${playerStats.chash}`;
-    return `${hpBar} ${cash} \n`;
-}
-
-function pad(len, text) {
-    let output = "";
-    for (let i = 0; i < len; i++) {
-        output += text;
+    function renderHUD() {
+        let hpBar = `[${ANSI.COLOR.RED + pad(Math.round(playerStats.hp), "o") + ANSI.COLOR_RESET}${ANSI.COLOR.BLUE + pad(HP_MAX - playerStats.hp, "o") + ANSI.COLOR_RESET}]`
+        let cash = `$:${playerStats.chash}`;
+        return `${hpBar} ${cash} \n`;
     }
-    return output;
-}
 
-function eventtextTime() {
+    function pad(len, text) {
+        let output = "";
+        for (let i = 0; i < len; i++) {
+            output += text;
+        }
+        return output;
+    }
 
-}
+    function eventtextTime() {
+
+    }
 
 
-function gameLoop() {
-    update();
-    draw();
+    function gameLoop() {
+        update();
+        draw();
 
 
-}
+    }
 
-function newGameLevel() {
-    tempLevel = rawLevel.split("\n");
-    level = [];
-    for (let i = 0; i < tempLevel.length; i++) {
-        let row = tempLevel[i];
-        let outputRow = row.split("");
-        level.push(outputRow);
+    function newGameLevel() {
+        tempLevel = rawLevel.split("\n");
+        level = [];
+        for (let i = 0; i < tempLevel.length; i++) {
+            let row = tempLevel[i];
+            let outputRow = row.split("");
+            level.push(outputRow);
 
+        }
     }
 };
+
